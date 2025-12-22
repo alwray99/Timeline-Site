@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Timeline</title>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
+  <!-- TimelineJS -->
   <link rel="stylesheet"
         href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
   <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
@@ -15,22 +17,67 @@
     html, body {
       margin: 0;
       height: 100%;
+      font-family: system-ui, sans-serif;
     }
+
     #timeline-embed {
       width: 100%;
       height: 100%;
+      display: none; /* hidden until auth passes */
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: 0.5rem 1rem;
+      z-index: 10;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(6px);
+      border-bottom-left-radius: 10px;
+    }
+
+    .logout-btn {
+      background: #7ba69b;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .logout-btn:hover {
+      background: #6a968c;
+    }
+
+    .loading {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7d78;
+      font-size: 0.95rem;
     }
   </style>
 </head>
 <body>
 
+<div class="loading" id="loading">
+  Loading secure content…
+</div>
+
+<div class="top-bar" id="topBar" style="display:none;">
+  <button class="logout-btn" onclick="logout()">Log out</button>
+</div>
+
 <div id="timeline-embed"></div>
 
 <script>
   const firebaseConfig = {
-      apiKey: "AIzaSyB8LpPxX9_R_iZ1rNBO0G6iDU4dgIbru7M",
-      authDomain: "timeline-site-560c6.firebaseapp.com",
-      projectId: "timeline-site-560c6"
+    apiKey: "AIzaSyB8LpPxX9_R_iZ1rNBO0G6iDU4dgIbru7M",
+    authDomain: "timeline-site-560c6.firebaseapp.com",
+    projectId: "timeline-site-560c6"
   };
 
   firebase.initializeApp(firebaseConfig);
@@ -38,14 +85,27 @@
 
   auth.onAuthStateChanged(user => {
     if (!user) {
-      window.location.href = "index.html";
-    } else {
-      new TL.Timeline(
-        'timeline-embed',
-        'PASTE_YOUR_TIMELINE_URL_HERE'
-      );
+      // Not logged in → back to login page
+      window.location.replace("index.html");
+      return;
     }
+
+    // Logged in → show timeline
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("timeline-embed").style.display = "block";
+    document.getElementById("topBar").style.display = "block";
+
+    new TL.Timeline(
+      'timeline-embed',
+      'https://cdn.knightlab.com/libs/timeline3/latest/embed/index.html?source=v2%3A2PACX-1vSXT8Fz7NBaWeN5_jClHJuQOCSP73dQQfDvfNxcHtt5fwqDuh_w8AUnQEX6FLlwVYvetvkFmepqpYUC&font=Default&lang=en&initial_zoom=2&width=100%25&height=650'
+    );
   });
+
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.replace("index.html");
+    });
+  }
 </script>
 
 </body>
